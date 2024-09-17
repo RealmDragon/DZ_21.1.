@@ -1,0 +1,23 @@
+[
+  {
+    "model": "catalog.category",
+    "pk": 1,
+    "fields": {
+      "name": "Шины и диски",
+      "description": "Тут продаются шины и диски"
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 1,
+    "fields": {
+      "name": "Шины Камма",
+      "description": "Камский завод шин, лучшие шины в мире",
+      "image": "",
+      "category": 1,
+      "price": 60000,
+      "created_at": "2024-07-30T21:05:17.745Z",
+      "updated_at": "2024-07-30T21:05:17.745Z"
+    }
+  }
+]

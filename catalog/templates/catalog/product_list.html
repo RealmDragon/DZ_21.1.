@@ -1,0 +1,32 @@
+{% extends 'catalog/home.html' %}
+{% load my_tags %}
+{% block content %}
+<div class="row text-center">
+    {% for product in object_list %}
+    <div class="col-3">
+        <div class="card-deck">
+            <div class="card mb-4 box-shadow">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">{{ product.name }}</h4>
+                </div>
+                <div class="card-align-self-end">
+                    <img width="500" height="500" class="img-fluid img-thumbnail"
+                         src="{{ product.image | media_filter }}">
+                    <h1 class="card-title pricing-card-title">{{ product.price }} руб.</h1>
+                    <ul class="list-unstyled mt-3 mb-4 text-start m-3">
+                        <li>- {{ product.description | slice:100 }}</li>
+                    </ul>
+                    <p class="text">Активная версия продукта: {{ version.is_active }}<p>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'catalog:product_detail' product.pk %}"
+                       role="button">Посмотреть</a>
+                    <a class="btn btn-sm btn-outline-success" href="{% url 'catalog:product_update' product.pk %}"
+                       role="button">Изменить</a>
+                    <a class="btn btn-sm btn-outline-danger" href="{% url 'catalog:product_delete' product.pk %}"
+                       role="button">Удалить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
