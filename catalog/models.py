@@ -25,6 +25,7 @@ class Category(models.Model):
         return f"{self.name} {self.description}"
 
 
+
 # создаем модель продуктов как многих к одной категории. Ссылка на категорию
 # создаем класс и наследуемся от models.Model
 class Product(models.Model):
@@ -77,4 +78,12 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} {self.category} {self.created_at}"
 
+class Version(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    version_number = models.CharField(max_length=20)
+    version_name = models.CharField(max_length=100)
+    is_current = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.version_name}"
 

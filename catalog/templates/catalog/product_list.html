@@ -16,7 +16,12 @@
                     <ul class="list-unstyled mt-3 mb-4 text-start m-3">
                         <li>- {{ product.description | slice:100 }}</li>
                     </ul>
-                    <p class="text">Активная версия продукта: {{ version.is_active }}<p>
+                    {% if product.versions.filter(is_current=True).exists %}
+                        <p class="text">Активная версия продукта:
+                            {{ product.versions.get(is_current=True).version_name }}</p>
+                    {% else %}
+                        <p class="text">Активной версии продукта нет</p>
+                    {% endif %}
                     <a class="btn btn-sm btn-outline-primary" href="{% url 'catalog:product_detail' product.pk %}"
                        role="button">Посмотреть</a>
                     <a class="btn btn-sm btn-outline-success" href="{% url 'catalog:product_update' product.pk %}"

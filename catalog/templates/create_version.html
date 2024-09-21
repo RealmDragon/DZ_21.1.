@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<h1>Создание версии для продукта {{ product.name }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Создать версию</button>
+</form>
+<body>
+
+</body>
+</html>
