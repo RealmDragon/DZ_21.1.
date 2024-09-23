@@ -1,25 +1,45 @@
-{% extends 'catalog/home.html' %}
-{% load my_tags %}
+{% extends 'catalog/base.html' %}
+{% load static %}
 {% block content %}
-<div class="row text-center">
-    <div class="col-3">
-        <div class="card-deck">
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
             <div class="card mb-4 box-shadow">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">{{ object.name }}</h4>
+                    <h4 class="my-0 font-weight-normal">{{ product.name }}</h4>
                 </div>
-                <div class="card-align-self-end">
-                    <img width="500" height="500" class="img-fluid img-thumbnail"
-                         src="{{ product.image | media_filter }}">
-                    <h1 class="card-title pricing-card-title">{{ object.price }} руб.</h1>
-                    <ul class="list-unstyled mt-3 mb-4 text-start m-3">
-                        <li>{{ object.description }}</li>
-                        <li>{{ object.category }}</li>
-                        <li>{{ object.created_at }}</li>
+                <div class="card-body">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    <p class="card-text">{{ product.description }}</p>
+                    <p class="card-text">Цена: {{ product.price }} руб.</p>
+                    <p class="card-text">Категория: {{ product.category }}</p>
+
+                    <h2>Версии:</h2>
+                    <ul>
+                        {% for version in product.versions.all %}
+                            <li>
+                                {{ version.version_number }} - {{ version.version_name }}
+                                {% if version.is_current %}
+                                    (Текущая)
+                                {% endif %}
+                                <a href="{% url 'catalog:version_update' version.pk %}">Изменить</a>
+                                <a href="{% url 'catalog:version_delete' version.pk %}">Удалить</a>
+                            </li>
+                        {% endfor %}
                     </ul>
-                    <button type="button" class="btn btn-lg btn-block btn-outline-primary">Купить</button>
-                    <a href="{% url 'catalog:product_list' %}" type="button"
-                       class="btn btn-lg btn-block btn-danger">Назад</a>
+
+                    <a href="{% url 'catalog:version_create' product.pk %}" class="btn btn-primary">Создать новую версию</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">Действия</h4>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-success">Изменить</a>
+                    <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger">Удалить</a>
                 </div>
             </div>
         </div>

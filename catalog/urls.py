@@ -1,15 +1,22 @@
 from django.urls import path
-from catalog.apps import CatalogConfig
-from catalog.views import ContactsTemplateView, ProductListView, ProductDetailView, ProductCreateView, \
-    ProductUpdateView, ProductDeleteView
+from .views import (
+    ProductCreateView, ProductUpdateView, ProductListView,
+    ProductDetailView, ProductDeleteView, ContactsTemplateView,
+    VersionCreateView, VersionUpdateView, VersionDeleteView
+)
 
-app_name = CatalogConfig.name
+app_name = 'catalog'
 
 urlpatterns = [
     path('', ProductListView.as_view(), name='product_list'),
-    path('catalog/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
-    path('catalog/create/', ProductCreateView.as_view(), name='product_create'),
-    path('catalog/update/<int:pk>/', ProductUpdateView.as_view(), name='product_update'),
-    path('catalog/delete/<int:pk>/', ProductDeleteView.as_view(), name='product_delete'),
+    path('<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
+    path('create/', ProductCreateView.as_view(), name='product_create'),
+    path('<int:pk>/update/', ProductUpdateView.as_view(), name='product_update'),
+    path('<int:pk>/delete/', ProductDeleteView.as_view(), name='product_delete'),
     path('contacts/', ContactsTemplateView.as_view(), name='contacts'),
+
+    # URL для версий
+    path('<int:product_id>/version/create/', VersionCreateView.as_view(), name='version_create'),
+    path('version/<int:pk>/update/', VersionUpdateView.as_view(), name='version_update'),
+    path('version/<int:pk>/delete/', VersionDeleteView.as_view(), name='version_delete'),
 ]

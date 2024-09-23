@@ -79,7 +79,7 @@ class Product(models.Model):
         return f"{self.name} {self.category} {self.created_at}"
 
 class Version(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="versions")
     version_number = models.CharField(max_length=20)
     version_name = models.CharField(max_length=100)
     is_current = models.BooleanField(default=False)
@@ -87,3 +87,13 @@ class Version(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.version_name}"
 
+    def set_current_version(self):
+        # Сбросить статус "текущая" для всех других версий этого продукта
+        Version.objects.filter(product=self.product, is_current=True).update(is_current=False)
+        # Установить текущую версию
+        self.is_current = True
+        self.save()
+
+    class Meta:
+        verbose_name = "Версия"
+        verbose_name_plural = "Версии"

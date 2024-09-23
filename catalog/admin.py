@@ -1,8 +1,6 @@
 from django.contrib import admin
 from catalog.models import Product, Category, Version
 
-
-
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description",)
@@ -25,8 +23,19 @@ class VersionAdmin(admin.ModelAdmin):
     actions = ["set_current_version"]
 
     def set_current_version(self, request, queryset):
-        for version in queryset:
-            version.set_current_version()
+        # Убедитесь, что выбрана только одна версия
+        if queryset.count() != 1:
+            self.message_user(request, "Выберите только одну версию для установки как текущую.")
+            return
+
+
+        version = queryset.first()
+        if version.is_current:
+            self.message_user(request, "Эта версия уже установлена как текущая.")
+            return
+
+
+        version.set_current_version()
         self.message_user(request, "Версия установлена как текущая.")
 
     set_current_version.short_description = "Установить как текущую версию"

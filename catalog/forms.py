@@ -1,87 +1,55 @@
-from django.db import models
+from django import forms
+from .models import Product, Version
 
-
-
-class Category(models.Model):
-
-    name = models.CharField(
-        max_length=100, verbose_name="категория", help_text="Введите категорию продукта"
-    )
-    description = models.TextField(
-        verbose_name="Описание категории",
-        help_text="Введите описание категории продукта",
-        blank=True,
-        null=True,
-    )
-
+class ProductForm(forms.ModelForm):
     class Meta:
-        verbose_name = "Категория"
-        verbose_name_plural = "Категории"
+        model = Product
+        fields = '__all__'
 
-    def __str__(self):
-        return f"{self.name} {self.description}"
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        description = cleaned_data.get('description')
 
+        forbidden_words = [
+            'казино', 'криптовалюта', 'крипта', 'биржа', 'дешево',
+            'бесплатно', 'обман', 'полиция', 'радар'
+        ]
 
+        for word in forbidden_words:
+            if word in name.lower() or word in description.lower():
+                raise forms.ValidationError(
+                    f'Название или описание продукта не должно содержать слово "{word}"'
+                )
 
-
-class Product(models.Model):
-
-    name = models.CharField(
-        max_length=100,
-        verbose_name="наименование",
-        help_text="введите наименование продукта",
-    )
-    description = models.TextField(
-        max_length=100, verbose_name="описание", help_text="Введите описание продукта"
-    )
-    image = models.ImageField(
-        upload_to="catalog/image",
-        blank=True,
-        null=True,
-        verbose_name="изображение",
-        help_text="загрузите изображение продукта",
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        verbose_name="Категория",
-        help_text="введите категорию продукта",
-        blank=True,
-        null=True,
-        related_name="products",
-    )
-    price = models.PositiveIntegerField(default=0, )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        editable=False,
-        verbose_name="дата создания",
-        help_text="Укажите дату создания записи в БД",
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="дата последнего изменения",
-        help_text="Укажите дату изменения записи в БД",
-    )
+        return cleaned_data
 
 
+class VersionForm(forms.ModelForm):
     class Meta:
-        verbose_name = "Продукт"
-        verbose_name_plural = "Продукты"
-        ordering = ["category", "name"]
+        model = Version
+        fields = ['product', 'version_number', 'version_name', 'is_current']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].queryset = Product.objects.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        product = cleaned_data.get('product')
+        version_number = cleaned_data.get('version_number')
+        is_current = cleaned_data.get('is_current')
 
 
-    def __str__(self):
-        return f"{self.name} {self.category} {self.created_at}"
+        if Version.objects.filter(product=product, version_number=version_number).exists():
+            raise forms.ValidationError(
+                f'Версия с номером {version_number} для этого продукта уже существует.'
+            )
 
-class Version(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="versions")
-    version_number = models.CharField(max_length=20)
-    version_name = models.CharField(max_length=100)
-    is_current = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"{self.product.name} - {self.version_name}"
+        if is_current and Version.objects.filter(product=product, is_current=True).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError(
+                "Для этого продукта уже есть установленная текущая версия. Сначала сбросьте статус текущей версии для другой версии."
+            )
 
-    class Meta:
-        verbose_name = "Версия"
-        verbose_name_plural = "Версии"
+        return cleaned_data

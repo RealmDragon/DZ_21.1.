@@ -1,12 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'catalog/base.html' %}
+{% load static %}
+{% block content %}
 <h1>Создание версии для продукта {{ product.name }}</h1>
+
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Создать версию</button>
 </form>
-<body>
 
-</body>
-</html>
+<a href="{% url 'catalog:product_detail' product.pk %}">Назад к продукту</a>
+
+{% endblock %}
