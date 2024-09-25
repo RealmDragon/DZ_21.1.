@@ -1,34 +1,48 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, TemplateView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from catalog.forms import ProductForm, VersionForm
 from catalog.models import Product, Version
 
 
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, CreateView):
+    model = Product
+    form_class = ProductForm
+    success_url = reverse_lazy('catalog:product_list')
+
+    def form_valid(self, form):
+        """
+        Привязываем созданный продукт к текущему пользователю.
+        """
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
     model = Product
     form_class = ProductForm
     success_url = reverse_lazy('catalog:product_list')
 
 
-class ProductUpdateView(UpdateView):
-    model = Product
-    form_class = ProductForm
-    success_url = reverse_lazy('catalog:product_list')
-
-
-class ProductListView(ListView):
+class ProductListView(LoginRequiredMixin, ListView):
     model = Product
     context_object_name = 'products'  # Указываем имя переменной для шаблона
 
+    def get_queryset(self):
+        """
+        Получаем только продукты текущего пользователя.
+        """
+        return Product.objects.filter(owner=self.request.user)
 
-class ProductDetailView(DetailView):
+
+class ProductDetailView(LoginRequiredMixin, DetailView):
     model = Product
     context_object_name = 'product'  # Указываем имя переменной для шаблона
 
 
-class ProductDeleteView(DeleteView):
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
     success_url = reverse_lazy('catalog:product_list')
 
@@ -46,7 +60,7 @@ class ContactsTemplateView(TemplateView):
 
 
 # CRUD для Версий
-class VersionCreateView(CreateView):
+class VersionCreateView(LoginRequiredMixin, CreateView):
     model = Version
     form_class = VersionForm
     success_url = reverse_lazy('catalog:product_list')  # Перенаправляем на список продуктов
@@ -58,7 +72,7 @@ class VersionCreateView(CreateView):
         return super().form_valid(form)
 
 
-class VersionUpdateView(UpdateView):
+class VersionUpdateView(LoginRequiredMixin, UpdateView):
     model = Version
     form_class = VersionForm
     success_url = reverse_lazy('catalog:product_list')  # Перенаправляем на список продуктов
@@ -67,7 +81,7 @@ class VersionUpdateView(UpdateView):
         return reverse_lazy('catalog:product_detail', kwargs={'pk': self.object.product.pk})
 
 
-class VersionDeleteView(DeleteView):
+class VersionDeleteView(LoginRequiredMixin, DeleteView):
     model = Version
     success_url = reverse_lazy('catalog:product_list')  # Перенаправляем на список продуктов
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -67,6 +68,7 @@ class Product(models.Model):
         verbose_name="дата последнего изменения",
         help_text="Укажите дату изменения записи в БД",
     )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)  # Ссылка на владельца
 
     # Класс мета
     class Meta:
