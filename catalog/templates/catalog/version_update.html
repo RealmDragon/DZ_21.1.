@@ -1,0 +1,14 @@
+{% extends 'catalog/base.html' %}
+{% load static %}
+{% block content %}
+<h1>Изменение версии {{ version.version_name }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить изменения</button>
+</form>
+
+<a href="{% url 'catalog:product_detail' version.product.pk %}">Назад к продукту</a>
+
+{% endblock %}
