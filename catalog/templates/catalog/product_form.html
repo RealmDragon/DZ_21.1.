@@ -1,53 +1,33 @@
-{% extends 'catalog/home.html' %}
-
+{% extends 'catalog/base.html' %}
+{% load static %}
 {% block content %}
-<div class="col-12">
-    <form class="row" method="post" enctype="multipart/form-data">
-
-        <div class="col-6">
+<div class="container">
+    <div class="row text-center">
+        <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        {% if object %}
-                        Редактировать товар
-                        {% else %}
-                        Добавить товар
-                        {% endif %}
-                    </h3>
-                </div>
                 <div class="card-body">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary">
+                    <h1 class="card-title">
                         {% if object %}
-                        Сохранить
+                            Изменение продукта
                         {% else %}
-                        Создать
+                            Создание продукта
                         {% endif %}
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        Версии продукта
-                    </h3>
-                </div>
-                <div class="card-body">
-                    {{ formset.management_form }}
-                    {% for form in formset.forms %}
+                    </h1>
+                    <form class="mb-3 form-control" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
                         {{ form.as_p }}
-                        {% if not forloop.last %}
-                            <hr>
-                        {% endif %}
-                    {% endfor %}
+                        <button type="submit" class="btn btn-success">
+                            {% if object %}
+                                Сохранить
+                            {% else %}
+                                Создать
+                            {% endif %}
+                        </button>
+                        <a class="btn btn-primary" href="{% url 'catalog:product_list' %}" role="button">Отмена</a>
+                    </form>
                 </div>
             </div>
         </div>
-
-    </form>
+    </div>
 </div>
 {% endblock %}

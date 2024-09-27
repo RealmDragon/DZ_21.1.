@@ -1,35 +1,48 @@
-{% extends 'catalog/home.html' %}
-{% load my_tags %}
+{% extends 'catalog/base.html' %}
+{% load static %}
 {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4 box-shadow">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">{{ product.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    <p class="card-text">{{ product.description }}</p>
+                    <p class="card-text">Цена: {{ product.price }} руб.</p>
+                    <p class="card-text">Категория: {{ product.category }}</p>
 
-<div class="row text-center">
+                    <h2>Версии:</h2>
+                    <ul>
+                        {% for version in product.versions.all %}
+                            <li>
+                                {{ version.version_number }} - {{ version.version_name }}
+                                {% if version.is_current %}
+                                    (Текущая)
+                                {% endif %}
+                                <a href="{% url 'catalog:version_update' version.pk %}">Изменить</a>
+                                <a href="{% url 'catalog:version_delete' version.pk %}">Удалить</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
 
-    <div class="col-6">
-        <div class="card mb-4 box-shadow">
-            <div class="card-header">
-                <img class='card-img-top' src="{{ object.photo | media_filter }}">
-                <h4 class="my-0 font-weight-normal">{{ object.name }}</h4>
+                    <a href="{% url 'catalog:version_create' product.pk %}" class="btn btn-primary">Создать новую версию</a>
+                </div>
             </div>
-            <div class="card-body">
-                <h2 class="card-title pricing-card-title">{{ object.price }} руб.</h2>
-                <ul class="list-unstyled mt-3 mb-4 text-start m-3">
-                    <p>Категория:</p>
-                    <p>{{ object.category | title}}</p>
-                    <p>Описание:</p>
-                    <p>{{ object.description | truncatechars:100 }}</p>
-                    <p>Дата создания объявления: {{ object.created_at }}</p>
-                    <p>Дата изменения объявления: {{ object.updated_at }}</p>
-                </ul>
-                <div class="btn-group">
-                    {% if perms.catalog.set_published_status and perms.catalog.can_edit_description and perms.catalog.can_edit_category or user == object.owner %}
-                        <a class="btn btn-outline-primary" href="{% url 'catalog:update_product' object.pk %}" role="button">Редактировать</a>
-                    {% endif %}
-                    <a class="btn btn-outline-primary" href="{% url 'catalog:home' %}" role="button">Назад</a>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">Действия</h4>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-success">Изменить</a>
+                    <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger">Удалить</a>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
-
 {% endblock %}
