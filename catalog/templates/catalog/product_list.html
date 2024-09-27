@@ -1,37 +1,46 @@
 {% extends 'catalog/home.html' %}
 {% load my_tags %}
 {% block content %}
+
 <div class="row text-center">
-    {% for product in products %}
-    <div class="col-3">
-        <div class="card-deck">
-            <div class="card mb-4 box-shadow">
-                <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">{{ product.name }}</h4>
-                </div>
-                <div class="card-align-self-end">
-                    <img width="500" height="500" class="img-fluid img-thumbnail"
-                         src="{{ product.image.url }}" alt="{{ product.name }}">
-                    <h1 class="card-title pricing-card-title">{{ product.price }} руб.</h1>
-                    <ul class="list-unstyled mt-3 mb-4 text-start m-3">
-                        <li>- {{ product.description | slice:100 }}</li>
-                    </ul>
-                    {% if product.versions.filter(is_current=True).exists %}
-                        <p class="text">Активная версия продукта:
-                            {{ product.versions.get(is_current=True).version_name }}</p>
-                    {% else %}
-                        <p class="text">Активной версии продукта нет</p>
+    <div class="col-12 mb-5">
+        <a class="btn btn-outline-primary" href="{% url 'catalog:create_product' %}">Добавить товар</a>
+    </div>
+
+    {% for object in object_list %}
+    {% if object.is_published %}
+    <div class="col-4">
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <img class='card-img-top' src="{{ object.photo | media_filter}}">
+                <h4 class="my-0 font-weight-normal">{{ object.name }}</h4>
+            </div>
+            <div class="card-body">
+                <h2 class="card-title pricing-card-title">{{ object.price }} руб.</h2>
+                <ul class="list-unstyled mt-3 mb-4 text-start m-3">
+                    <l1>Описание:</l1>
+                    <li>{{ object.description | truncatechars:100 }}</li>
+                    <li>
+                        {% if object.actual_version%}
+                        Актуальная версия: {{object.actual_version}}
+
+                        {% endif %}
+                    </li>
+                </ul>
+                <div class="btn-group">
+                    {% if user == object.owner %}
+                        <a class="btn btn-outline-primary" href="{% url 'catalog:product_about' object.pk %}" role="button">О товаре</a>
                     {% endif %}
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'catalog:product_detail' product.pk %}"
-                       role="button">Посмотреть</a>
-                    <a class="btn btn-sm btn-outline-success" href="{% url 'catalog:product_update' product.pk %}"
-                       role="button">Изменить</a>
-                    <a class="btn btn-sm btn-outline-danger" href="{% url 'catalog:product_delete' product.pk %}"
-                       role="button">Удалить</a>
+                    {% if perms.catalog.set_published_status and perms.catalog.can_edit_description and perms.catalog.can_edit_category or user == object.owner %}
+                        <a class="btn btn-outline-primary" href="{% url 'catalog:update_product' object.pk %}" role="button">Редактировать</a>
+                    {% endif %}
+                    <a class="btn btn-outline-primary" href="#" role="button">Купить</a>
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
     {% endfor %}
 </div>
+
 {% endblock %}

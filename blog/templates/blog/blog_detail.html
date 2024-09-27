@@ -1,23 +1,34 @@
 {% extends 'catalog/home.html' %}
 {% load my_tags %}
 {% block content %}
-<div class="container">
-    <div class="row text-center">
-        <div class="col-10">
-            <div class="card mb-4 box-shadow">
-                <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">{{ object.title }} </h4>
-                </div>
-                <div class="card-body">
-                    <img class="card-img-top" src="{{ object.preview | media_filter }}">
-                    <p class="card-text"> Ссылка: {{ object.slug }}</p>
-                    <p class="card-text">Содержимое: {{ object.content }}</p>
-                    <p class="card-text">Дата создания: {{ object.created_at }}</p>
-                    <p class="card-text">Кол-во просмотров: {{ object.views }}</p>
-                    <a class="btn btn-primary" href="{% url 'blog:blog_list' %}" role="button">Назад</a>
+
+<div class="row text-center">
+
+    <div class="col-6">
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <img class='card-img-top' src="{{ object.preview | media_filter }}">
+                <h4 class="my-0 font-weight-normal">{{ object.title }} ({{ object.slug }})</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mt-3 mb-4 text-start m-3">
+
+                    <p>{{ object.body}}</p>
+
+                    <dl> Дата создания: {{ object.created_at }}</dl>
+                    <dl> Количество просмотров: {{ object.views_count }}</dl>
+
+
+                </ul>
+                <div class="btn-group">
+
+                    <a class="btn btn-lg btn-block btn-outline-primary"
+                       href="{% url 'blog:list' %}" role="button">Назад</a>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
+
 {% endblock %}

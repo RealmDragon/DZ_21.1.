@@ -1,55 +1,90 @@
 from django import forms
-from .models import Product, Version
 
-class ProductForm(forms.ModelForm):
-    class Meta:
-        model = Product
-        fields = '__all__'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        name = cleaned_data.get('name')
-        description = cleaned_data.get('description')
-
-        forbidden_words = [
-            'казино', 'криптовалюта', 'крипта', 'биржа', 'дешево',
-            'бесплатно', 'обман', 'полиция', 'радар'
-        ]
-
-        for word in forbidden_words:
-            if word in name.lower() or word in description.lower():
-                raise forms.ValidationError(
-                    f'Название или описание продукта не должно содержать слово "{word}"'
-                )
-
-        return cleaned_data
+from catalog.models import Product, Version
+from config.settings import UNVALID_WORDS
 
 
-class VersionForm(forms.ModelForm):
-    class Meta:
-        model = Version
-        fields = ['product', 'version_number', 'version_name', 'is_current']
+class StyleFormMixin:
+    """
+    Стилизация формы
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['product'].queryset = Product.objects.all()
-
-    def clean(self):
-        cleaned_data = super().clean()
-        product = cleaned_data.get('product')
-        version_number = cleaned_data.get('version_number')
-        is_current = cleaned_data.get('is_current')
+        for field_name, field in self.fields.items():
+            field.widget.attrs["class"] = "form-control"
 
 
-        if Version.objects.filter(product=product, version_number=version_number).exists():
-            raise forms.ValidationError(
-                f'Версия с номером {version_number} для этого продукта уже существует.'
-            )
+def string_to_words(my_str: str) -> list:
+    """
+    Функция преобразует строку в список слов, используется для валидации - поиске запрещенных слов
+    В список включаются слова длиннее одной буквы с переводом в нижний регистр, без знаков препинания
+    """
+    output: list = my_str.split()
+    output_list: list = []
+
+    for item in output:
+        word: str = ""
+
+        for char in item:
+            if char.isalpha():
+                word += char
+        if len(word) > 1:
+            output_list.append(word.lower())
+    return output_list
 
 
-        if is_current and Version.objects.filter(product=product, is_current=True).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError(
-                "Для этого продукта уже есть установленная текущая версия. Сначала сбросьте статус текущей версии для другой версии."
-            )
+class ProductForm(StyleFormMixin, forms.ModelForm):
+    """
+    Форма для товара
+    """
 
+    class Meta:
+        model = Product
+        exclude = ("owner",)
+
+    def clean_name(self):
+        """
+        Валидация названия товара
+        """
+        cleaned_data = self.cleaned_data["name"]
+        cleaned_data_list = string_to_words(cleaned_data)
+        for word in cleaned_data_list:
+            if word in UNVALID_WORDS:
+                raise forms.ValidationError("Текст содержит недопустимые слова")
         return cleaned_data
+
+    def clean_description(self):
+        """
+        Валидация описания товара
+        """
+        cleaned_data = self.cleaned_data["description"]
+        cleaned_data_list = string_to_words(cleaned_data)
+        for word in cleaned_data_list:
+            if word in UNVALID_WORDS:
+                raise forms.ValidationError("Текст содержит недопустимые слова")
+        return cleaned_data
+
+
+class VersionForm(StyleFormMixin, forms.ModelForm):
+    """
+    Форма для версии товара
+    """
+
+    class Meta:
+        model = Version
+        fields = "__all__"
+
+
+class ProductModeratorForm(StyleFormMixin, forms.ModelForm):
+    """
+    Форма товара для модератора
+    """
+
+    class Meta:
+        model = Product
+        fields = (
+            "description",
+            "category",
+            "is_published",
+        )

@@ -1,50 +1,35 @@
+from datetime import datetime
+
 from django.db import models
 
+NULLABLE = {"blank": True, "null": True}
+
+
 class Blog(models.Model):
-    # заголовок, slug, содержимое, превью, дата создания, признак публикации, количество просмотров
-    # создаем поля и прописываем их параметры
-    title = models.CharField(
-        max_length=100,
-        verbose_name="заголовок",
-        help_text="введите название заголовка",
-    )
-    slug = models.CharField(
-        max_length=100,
-        verbose_name="Идентификатор",
-        unique=True,
-        null=True,
-    )
-    content = models.TextField(
-        max_length=100, verbose_name="содержимое", help_text="Введите содержимое"
-    )
+    """
+    Модель сообщения блога
+    """
+
+    title = models.CharField(max_length=150, verbose_name="Заголовок")
+    slug = models.CharField(max_length=150, verbose_name="slug", **NULLABLE)
+    body = models.TextField(verbose_name="Содержимое")
     preview = models.ImageField(
-        upload_to="catalog/image",
-        blank=True,
-        null=True,
-        verbose_name="изображение",
-        help_text="загрузите изображение"
+        upload_to="blog/photo",
+        verbose_name="Изображение",
+        **NULLABLE,
     )
-    created_at = models.DateTimeField(
+    created_at = models.DateField(
         auto_now_add=True,
-        verbose_name="дата создания",
-        help_text="Укажите дату создания"
+        verbose_name="Дата создания",
     )
-    published = models.BooleanField(
-        default=False,
-        verbose_name="публикация",
-        help_text="поставьте галочку если статья опубликована"
+    is_published = models.BooleanField(default=True, verbose_name="Опубликовано")
+    views_count = models.PositiveIntegerField(
+        default=0, editable=False, verbose_name="Просмотры"
     )
-    views = models.IntegerField(
-        default=0,
-        verbose_name="Количество просмотров",
-        help_text="Укажите количество просмотров"
-    )
+
+    def __str__(self):
+        return f"{self.title} {self.created_at}"
 
     class Meta:
-        verbose_name = "Запись в блоге"
-        verbose_name_plural = "Записи в блоге"
-
-    # строковое представление объекта
-    def __str__(self):
-        return f"{self.title}"
-
+        verbose_name = "блог"
+        verbose_name_plural = "блог"

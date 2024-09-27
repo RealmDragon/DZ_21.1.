@@ -1,53 +1,73 @@
 from django.core.management import BaseCommand
-from catalog.models import Category, Product
 import json
-import os
 
-ROOT_DIR = os.path.dirname(__file__)
-# catalog.json
-file_path = os.path.join(ROOT_DIR, 'catalog.json')
+from config.settings import JSON_FILE_PATH
+from catalog.models import Category, Product
 
 
 class Command(BaseCommand):
+    @staticmethod
+    def json_read_categories():
+        # Здесь мы получаем данные из фикстуры с категориями
+        with open(JSON_FILE_PATH) as f:
+            categories = json.load(f)
+        return [
+            category
+            for category in categories
+            if category["model"] == "catalog.category"
+        ]
 
     @staticmethod
-    def json_categories() -> list:
-        """
-        Получение данных из фикстуры с категориями
-        :return: список с категориями
-        """
-        with open(file_path, encoding="utf-8") as file:
-            values = json.load(file)
-            print("value['model'] == catalog.category", values, end="\\")
-        categories = [value for value in values if value['model'] == "catalog.category"]
-        return categories
-
-    @staticmethod
-    def json_products() -> list:
-        """
-        Получение данных из фикстуры с продуктами
-        :return: список с продуктами
-        """
-        with open(file_path, encoding="utf-8") as file:
-            values = json.load(file)
-            print("value['model'] == catalog.product", values, end="\\")
-        products = [value for value in values if value['model'] == "catalog.product"]
-        return products
+    def json_read_products():
+        # Здесь мы получаем данные из фикстуры с продуктами
+        with open(JSON_FILE_PATH) as f:
+            products = json.load(f)
+        return [
+            product for product in products if product["model"] == "catalog.product"
+        ]
 
     def handle(self, *args, **options):
+        # Удалите все продукты
         Product.objects.all().delete()
+        # Удалите все категории
         Category.objects.all().delete()
-
+        # Создайте списки для хранения объектов
+        product_for_create = []
         category_for_create = []
-        products_for_create = []
 
-        for category in Command.json_categories():
-            category_for_create.append(Category(**category))
+        # Обходим все значения категорий из фиктсуры для получения информации об одном объекте
+        for category in Command.json_read_categories():
+            category_for_create.append(
+                Category(
+                    id=category["pk"],
+                    name=category["fields"]["name"],
+                    description=category["fields"]["description"],
+                )
+            )
 
+        # Создаем объекты в базе с помощью метода bulk_create()
         Category.objects.bulk_create(category_for_create)
 
-        for product in Command.json_products():
-            products_for_create.append(Product(**product))
+        # Обходим все значения продуктов из фиктсуры для получения информации об одном объекте
+        for product in Command.json_read_products():
+            # получаем категорию из базы данных для корректной связки объектов
+            if product["fields"]["category"]:
+                category = Category.objects.get(pk=product["fields"]["category"])
+            else:
+                category = None
 
-        Product.objects.bulk_create(products_for_create)
+            product_for_create.append(
+                Product(
+                    id=product["pk"],
+                    name=product["fields"]["name"],
+                    description=product["fields"]["description"],
+                    photo=product["fields"]["photo"],
+                    category=category,
+                    price=product["fields"]["price"],
+                    created_at=product["fields"]["created_at"],
+                    updated_at=product["fields"]["updated_at"],
+                )
+            )
 
+        #     # Создаем объекты в базе с помощью метода bulk_create()
+        Product.objects.bulk_create(product_for_create)
